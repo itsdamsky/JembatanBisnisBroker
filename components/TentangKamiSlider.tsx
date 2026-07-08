@@ -40,7 +40,7 @@ export default function TentangKamiSlider() {
   const [active, setActive] = useState(0);
 
   return (
-    <section className="relative bg-navy-900 pt-24 pb-32 lg:pt-32 lg:pb-40 overflow-hidden min-h-[720px]">
+    <section className="relative bg-navy-900 pt-10 pb-10 lg:pt-14 lg:pb-14 overflow-hidden h-full flex items-center">
       {/* FULL-BLEED BACKGROUND — mengikuti slide aktif, crossfade */}
       <div className="absolute inset-0">
         {slides.map((s, i) => (
@@ -148,10 +148,10 @@ export default function TentangKamiSlider() {
           <div>
             <Carousel3D
               items={slides}
-              activeWidth={380}
-              thumbWidth={190}
-              cardHeight={420}
-              gap={20}
+              activeWidth={300}
+              thumbWidth={200}
+              cardHeight={360}
+              gap={18}
               autoPlay
               autoPlayInterval={4500}
               dotClassName="bg-white/25 hover:bg-white/50"
@@ -170,9 +170,8 @@ export default function TentangKamiSlider() {
                     draggable={false}
                     quality={90}
                     className="object-cover pointer-events-none"
-                    sizes={isActive ? "400px" : "220px"}
+                    sizes={isActive ? "320px" : "160px"}
                   />
-
                   <span className="absolute top-4 left-4 inline-flex items-center justify-center w-10 h-10 rounded-xl bg-white/90 text-brand text-sm font-bold shadow-md">
                     {slide.number}
                   </span>

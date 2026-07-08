@@ -7,9 +7,6 @@ export default function About() {
         <div className="bg-navy-900 rounded-3xl overflow-hidden grid lg:grid-cols-2 items-center">
           {/* Text */}
           <div className="px-8 py-14 lg:px-14 lg:py-0">
-            <p className="eyebrow text-sm font-bold text-blue-300 mb-4 uppercase">
-              Tentang Kami
-            </p>
             <h2 className="text-3xl lg:text-[34px] font-bold text-white leading-tight mb-5">
               Partner Terpercaya dalam Setiap Langkah Bisnis Anda
             </h2>

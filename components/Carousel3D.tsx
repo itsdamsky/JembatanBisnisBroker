@@ -2,13 +2,16 @@
 
 import {
   motion,
+  AnimatePresence,
   useMotionValue,
   useTransform,
+  useSpring,
   animate as framerAnimate,
   MotionValue,
 } from "framer-motion";
 import {
   ReactNode,
+  memo,
   useCallback,
   useEffect,
   useRef,
@@ -16,106 +19,185 @@ import {
 } from "react";
 
 /* ------------------------------------------------------------------ */
-/* Helpers                                                             */
+/* Utilities                                                            */
 /* ------------------------------------------------------------------ */
 
-/** Shortest signed distance from `position` to `index` on a circular
- *  track of length `total`. Works for fractional (mid-drag) positions. */
 function shortestOffset(index: number, position: number, total: number) {
   const diff = index - position;
   return diff - total * Math.round(diff / total);
 }
 
-const SPRING = { type: "spring" as const, stiffness: 260, damping: 32, mass: 1 };
+function clamp(v: number, min: number, max: number) {
+  return Math.max(min, Math.min(max, v));
+}
 
 /* ------------------------------------------------------------------ */
-/* Single card                                                         */
+/* Card — every visual property derives from ONE value:                 */
+/* distanceFromCenter. Spatial transforms (position/depth/rotation/     */
+/* scale) stay hard-locked to the shared track so the whole stage       */
+/* moves as one rigid object. Atmospheric properties (opacity/blur/     */
+/* brightness/contrast) run through their own trailing spring so they   */
+/* settle a beat behind the rigid motion — this is what makes the       */
+/* motion read as organic rather than mechanically synchronized.        */
 /* ------------------------------------------------------------------ */
 
 interface CardProps {
   index: number;
   total: number;
   trackPosition: MotionValue<number>;
-  cardWidth: number;
+  activeWidth: number;
+  thumbWidth: number;
   cardHeight: number;
+  gap: number;
   onClick: () => void;
   children: (isActive: boolean) => ReactNode;
 }
 
-function Card({
+const Card = memo(function Card({
   index,
   total,
   trackPosition,
-  cardWidth,
+  activeWidth,
+  thumbWidth,
   cardHeight,
+  gap,
   onClick,
   children,
 }: CardProps) {
-  const offset = useTransform(trackPosition, (tp) =>
+  /* ---- the single source of truth ---- */
+  const distance = useTransform(trackPosition, (tp) =>
     shortestOffset(index, tp, total)
   );
-  const absOffset = useTransform(offset, (o) => Math.abs(o));
+  const absDistance = useTransform(distance, (d) => Math.abs(d));
 
-  // Horizontal spacing is derived from cardWidth so cards visually overlap
-  // like a premium coverflow rather than sitting edge-to-edge.
-  const spacing = cardWidth * 0.62;
+  // thumbWidth is preserved from the public API, but repurposed as the
+  // target SCALE ratio for distant cards rather than a literal box width
+  // — the footprint never resizes, only its apparent scale in 3D space.
+  const minScale = clamp(thumbWidth / activeWidth, 0.32, 0.92);
+  const spacing = activeWidth * 0.62 + gap;
 
-  const x = useTransform(offset, (o) => o * spacing - cardWidth / 2);
-  const scale = useTransform(absOffset, [0, 1, 2, 3], [1, 0.87, 0.74, 0.62]);
-  const opacity = useTransform(absOffset, [0, 1, 2, 2.6], [1, 0.55, 0.22, 0]);
-  const blurPx = useTransform(absOffset, [0, 1, 2, 3], [0, 2, 5, 9]);
-  const filter = useTransform(blurPx, (b) => `blur(${b}px)`);
-  const rotateY = useTransform(offset, (o) =>
-    Math.max(-42, Math.min(42, o * -26))
+  /* ---- spatial transforms: hard-locked to `distance`, GPU-only ---- */
+  const translateX = useTransform(distance, (d) => d * spacing);
+  const translateZ = useTransform(absDistance, (d) => -d * 260);
+  const rotateY = useTransform(distance, (d) => clamp(-d * 34, -50, 50));
+  const scale = useTransform(
+    absDistance,
+    [0, 1, 2, 3],
+    [1, minScale, minScale * 0.86, minScale * 0.72]
   );
-  const z = useTransform(absOffset, (d) => -d * 140);
-  const zIndex = useTransform(absOffset, (d) => Math.round(100 - d * 10));
-  const pointerEvents = useTransform(absOffset, (d) =>
-    d > 2.6 ? "none" : "auto"
+
+  /* ---- atmospheric properties: trailing spring for organic settle ---- */
+  const opacityRaw = useTransform(absDistance, [0, 1, 2, 3], [1, 0.55, 0.22, 0]);
+  const blurRaw = useTransform(absDistance, [0, 1, 2, 3], [0, 3, 7, 14]);
+  const brightnessRaw = useTransform(absDistance, [0, 1, 2, 3], [1, 0.7, 0.5, 0.35]);
+  const contrastRaw = useTransform(absDistance, [0, 1, 2], [1.05, 0.95, 0.9]);
+
+  const trailSpring = { stiffness: 120, damping: 20, mass: 0.6 };
+  const opacity = useSpring(opacityRaw, trailSpring);
+  const blurPx = useSpring(blurRaw, trailSpring);
+  const brightness = useSpring(brightnessRaw, trailSpring);
+  const contrast = useSpring(contrastRaw, trailSpring);
+
+  const filter = useTransform(
+    [blurPx, brightness, contrast],
+    ([b, br, c]: number[]) => `blur(${b}px) brightness(${br}) contrast(${c})`
+  );
+
+  const zIndex = useTransform(absDistance, (d) => Math.round(200 - d * 10));
+  const pointerEvents = useTransform(absDistance, (d) =>
+    d > 3.2 ? "none" : "auto"
+  );
+
+  // dynamic shadow — strongest for the active card, fades to nothing
+  // almost immediately for neighbours, reinforcing hierarchy
+  const shadowStrength = useTransform(absDistance, [0, 0.6, 1.5], [1, 0.3, 0]);
+  const boxShadow = useTransform(
+    shadowStrength,
+    (s) =>
+      `0 ${40 * s}px ${90 * s}px -20px rgba(0,0,0,${0.55 * s}), 0 0 ${
+        60 * s
+      }px rgba(59,130,246,${0.25 * s})`
   );
 
   const [isActive, setIsActive] = useState(index === 0);
   useEffect(() => {
-    return absOffset.on("change", (d) => {
+    return absDistance.on("change", (d) => {
       setIsActive((prev) => {
         const next = d < 0.5;
         return prev === next ? prev : next;
       });
     });
-  }, [absOffset]);
+  }, [absDistance]);
 
   return (
     <motion.div
       onClick={onClick}
       className="absolute top-1/2 left-1/2 cursor-pointer will-change-transform"
       style={{
-        width: cardWidth,
+        // static footprint — NEVER animated. All apparent sizing comes
+        // from `scale` + `translateZ` under perspective, not layout.
+        width: activeWidth,
         height: cardHeight,
+        marginLeft: -activeWidth / 2,
         marginTop: -cardHeight / 2,
-        x,
+        x: translateX,
+        z: translateZ,
+        rotateY,
         scale,
         opacity,
         filter,
-        rotateY,
-        z,
         zIndex,
+        boxShadow,
         pointerEvents,
+        transformStyle: "preserve-3d",
       }}
     >
-      {children(isActive)}
+      {/* glass rim — gradient border, strongest on the active card */}
+      <div
+        className="absolute inset-0 rounded-[28px] pointer-events-none z-10"
+        style={{
+          border: "1px solid rgba(255,255,255,0.18)",
+          background: isActive
+            ? "linear-gradient(135deg, rgba(255,255,255,0.14), rgba(255,255,255,0) 45%)"
+            : "transparent",
+        }}
+      />
+
+      {/* ambient glow behind the active card — real exit animation via
+          AnimatePresence, not an instant mount/unmount pop */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            key="glow"
+            className="absolute -inset-10 rounded-[40px] bg-blue-400/25 blur-3xl -z-10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div className="w-full h-full rounded-[28px] overflow-hidden relative">
+        {children(isActive)}
+        {/* soft reflection */}
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent pointer-events-none" />
+      </div>
     </motion.div>
   );
-}
+});
 
 /* ------------------------------------------------------------------ */
-/* Carousel                                                             */
+/* Carousel                                                              */
 /* ------------------------------------------------------------------ */
 
 export interface Carousel3DProps<T> {
   items: T[];
   renderCard: (item: T, isActive: boolean, index: number) => ReactNode;
-  cardWidth?: number;
+  activeWidth?: number;
+  thumbWidth?: number;
   cardHeight?: number;
+  gap?: number;
   autoPlay?: boolean;
   autoPlayInterval?: number;
   className?: string;
@@ -127,8 +209,10 @@ export interface Carousel3DProps<T> {
 export default function Carousel3D<T>({
   items,
   renderCard,
-  cardWidth = 420,
-  cardHeight = 460,
+  activeWidth = 380,
+  thumbWidth = 190,
+  cardHeight = 420,
+  gap = 20,
   autoPlay = true,
   autoPlayInterval = 4500,
   className = "",
@@ -145,19 +229,36 @@ export default function Carousel3D<T>({
   const suppressClick = useRef(false);
   const dragStartClientX = useRef(0);
   const dragStartPosition = useRef(0);
+  const lastMoveTime = useRef(0);
+  const lastMoveX = useRef(0);
+  const velocity = useRef(0);
   const autoplayTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   const wheelLock = useRef(false);
+  const wheelAccum = useRef(0);
+
+  const spacing = activeWidth * 0.62 + gap;
 
   const goTo = useCallback(
-    (targetIndexRaw: number) => {
+    (targetIndexRaw: number, initialVelocity = 0) => {
       const normalized = ((targetIndexRaw % total) + total) % total;
       const current = trackPosition.get();
       const diff = normalized - current;
       const wrappedDiff = diff - total * Math.round(diff / total);
       const target = current + wrappedDiff;
 
+      // distance-adaptive spring: a 1-slide nudge and a multi-slide
+      // flick should not feel identical — heavier jumps get slightly
+      // softer stiffness/more damping so momentum reads as real weight
+      const jumpDistance = Math.abs(wrappedDiff);
+      const stiffness = jumpDistance > 1.5 ? 170 : 240;
+      const damping = jumpDistance > 1.5 ? 24 : 20;
+
       framerAnimate(trackPosition, target, {
-        ...SPRING,
+        type: "spring",
+        stiffness,
+        damping,
+        mass: 0.9,
+        velocity: initialVelocity,
         onComplete: () => trackPosition.set(normalized),
       });
 
@@ -167,15 +268,15 @@ export default function Carousel3D<T>({
     [total, trackPosition, onActiveChange]
   );
 
-  const next = useCallback(() => {
-    goTo(Math.round(trackPosition.get()) + 1);
-  }, [goTo, trackPosition]);
+  const next = useCallback(
+    () => goTo(Math.round(trackPosition.get()) + 1),
+    [goTo, trackPosition]
+  );
+  const prev = useCallback(
+    () => goTo(Math.round(trackPosition.get()) - 1),
+    [goTo, trackPosition]
+  );
 
-  const prev = useCallback(() => {
-    goTo(Math.round(trackPosition.get()) - 1);
-  }, [goTo, trackPosition]);
-
-  /* ---- autoplay ---- */
   const stopAutoplay = useCallback(() => {
     if (autoplayTimer.current) {
       clearInterval(autoplayTimer.current);
@@ -195,12 +296,15 @@ export default function Carousel3D<T>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ---- drag (mouse + touch via pointer events) ---- */
+  /* ---- drag: heavy, premium, velocity-aware ---- */
   const handlePointerDown = (e: React.PointerEvent) => {
     isDragging.current = true;
     dragMoved.current = false;
     dragStartClientX.current = e.clientX;
     dragStartPosition.current = trackPosition.get();
+    lastMoveTime.current = performance.now();
+    lastMoveX.current = e.clientX;
+    velocity.current = 0;
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
     stopAutoplay();
   };
@@ -208,9 +312,18 @@ export default function Carousel3D<T>({
   const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging.current) return;
     const dx = e.clientX - dragStartClientX.current;
-    if (Math.abs(dx) > 6) dragMoved.current = true;
-    const spacing = cardWidth * 0.62;
+    if (Math.abs(dx) > 8) dragMoved.current = true;
     trackPosition.set(dragStartPosition.current - dx / spacing);
+
+    const now = performance.now();
+    const dt = now - lastMoveTime.current;
+    if (dt > 0) {
+      const instant = (e.clientX - lastMoveX.current) / dt;
+      // EMA smoothing — raw per-frame velocity is noisy
+      velocity.current = velocity.current * 0.7 + instant * 0.3;
+    }
+    lastMoveTime.current = now;
+    lastMoveX.current = e.clientX;
   };
 
   const handlePointerUp = () => {
@@ -220,22 +333,40 @@ export default function Carousel3D<T>({
       suppressClick.current = true;
       setTimeout(() => (suppressClick.current = false), 60);
     }
-    goTo(Math.round(trackPosition.get()));
+
+    const flickThreshold = 0.5; // px/ms
+    const current = trackPosition.get();
+    let target = Math.round(current);
+
+    if (Math.abs(velocity.current) > flickThreshold) {
+      const extraSlides = Math.min(
+        2,
+        Math.floor(Math.abs(velocity.current) / flickThreshold)
+      );
+      target = Math.round(current) - Math.sign(velocity.current) * extraSlides;
+    }
+
+    // momentum survives into the release spring instead of stopping
+    // dead and relaunching from rest
+    const trackVelocity = -(velocity.current / spacing) * 1000;
+
+    goTo(target, trackVelocity);
     startAutoplay();
   };
 
-  /* ---- wheel ---- */
+  /* ---- wheel: same premium threshold + cooldown behaviour ---- */
   const handleWheel = (e: React.WheelEvent) => {
     e.preventDefault();
     if (wheelLock.current) return;
     const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-    if (Math.abs(delta) < 10) return;
+    wheelAccum.current += delta;
+    if (Math.abs(wheelAccum.current) < 60) return;
     wheelLock.current = true;
-    delta > 0 ? next() : prev();
-    setTimeout(() => (wheelLock.current = false), 450);
+    wheelAccum.current > 0 ? next() : prev();
+    wheelAccum.current = 0;
+    setTimeout(() => (wheelLock.current = false), 650);
   };
 
-  /* ---- keyboard ---- */
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowRight") next();
     if (e.key === "ArrowLeft") prev();
@@ -248,7 +379,7 @@ export default function Carousel3D<T>({
         aria-roledescription="carousel"
         tabIndex={0}
         className="relative w-full select-none outline-none cursor-grab active:cursor-grabbing touch-pan-y"
-        style={{ height: cardHeight, perspective: 1600 }}
+        style={{ height: cardHeight }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -258,24 +389,32 @@ export default function Carousel3D<T>({
         onMouseEnter={stopAutoplay}
         onMouseLeave={startAutoplay}
       >
-        {items.map((item, index) => (
-          <Card
-            key={index}
-            index={index}
-            total={total}
-            trackPosition={trackPosition}
-            cardWidth={cardWidth}
-            cardHeight={cardHeight}
-            onClick={() => {
-              if (!suppressClick.current) goTo(index);
-            }}
-          >
-            {(isActive) => renderCard(item, isActive, index)}
-          </Card>
-        ))}
+        {/* the 3D stage — depth needs room to exist, so this is never
+            clipped with overflow-hidden the way a flat slider would be */}
+        <div
+          className="absolute inset-0"
+          style={{ perspective: 1500, transformStyle: "preserve-3d" }}
+        >
+          {items.map((item, index) => (
+            <Card
+              key={index}
+              index={index}
+              total={total}
+              trackPosition={trackPosition}
+              activeWidth={activeWidth}
+              thumbWidth={thumbWidth}
+              cardHeight={cardHeight}
+              gap={gap}
+              onClick={() => {
+                if (!suppressClick.current) goTo(index);
+              }}
+            >
+              {(isActive) => renderCard(item, isActive, index)}
+            </Card>
+          ))}
+        </div>
       </div>
 
-      {/* Pagination dots */}
       <div className="flex items-center justify-center gap-2 mt-8">
         {items.map((_, i) => (
           <button
