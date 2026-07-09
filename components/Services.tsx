@@ -37,7 +37,7 @@ const services = [
 export default function Services() {
   return (
     <section id="layanan" className="py-24 lg:py-28">
-      <div className="max-w-[1600px] mx-auto px-6 lg:px-8">
+      <div className="max-w-container mx-auto px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-14">
           <h2 className="text-3xl lg:text-[38px] font-bold text-navy-900 mb-4">
             Solusi Tepat untuk Setiap Tahap Bisnis Anda

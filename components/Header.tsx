@@ -4,9 +4,9 @@ import { useState } from "react";
 import Image from "next/image";
 
 const navLinks = [
-  { label: "Beranda", href: "#beranda" },
+  { label: "Beranda", href: "/" },
   { label: "Tentang Kami", href: "tentang-kami" },
-  { label: "Layanan", href: "#layanan", hasDropdown: true },
+  { label: "Layanan", href: "/layanan", hasDropdown: true },
   { label: "Hubungi Kami", href: "#hubungi-kami" },
 ];
 
@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur border-b border-slate-100">
-      <div className="max-w-[1600px] mx-auto px-6 lg:px-8 flex items-center justify-between h-20">
+      <div className="max-w-container mx-auto px-6 lg:px-8 flex items-center justify-between h-20">
         {/* Logo */}
         <a href="#beranda" className="flex items-center shrink-0">
           <img

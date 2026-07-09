@@ -126,7 +126,7 @@ export default function FeaturesBar() {
           (calc(100vh-190px) / calc(100vh-210px)) HARUS ikut disesuaikan
           juga (lihat rumus di komentar Hero.tsx), supaya total tetap 100vh.
       */}
-      <div className="max-w-[1200px] mx-auto bg-navy-900 rounded-3xl px-8 py-8 lg:py-10 shadow-2xl">
+      <div className="max-w-[1080px] mx-auto bg-navy-900 rounded-3xl px-8 py-8 lg:py-10 shadow-2xl">
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-6 text-center">
           {features.map((f) => (
             <div key={f.title} className="flex flex-col items-center">

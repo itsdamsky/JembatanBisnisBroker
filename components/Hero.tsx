@@ -38,8 +38,8 @@ export default function Hero() {
         />
       </div>
 
-      {/* Konten teks tetap dalam container max-w-[1600px], di atas gambar (z-10) */}
-      <div className="relative z-10 max-w-[1600px] mx-auto px-6 lg:px-8 w-full -translate-y-6 lg:-translate-y-10">
+      {/* Konten teks tetap dalam container max-w-container, di atas gambar (z-10) */}
+      <div className="relative z-10 max-w-container mx-auto px-6 lg:px-8 w-full -translate-y-6 lg:-translate-y-10">
         {/*                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             Geser konten teks sedikit ke atas dari posisi center penuh,
             supaya secara visual terasa lebih "pas di tengah" (bukan

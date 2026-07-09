@@ -1,5 +1,6 @@
 import Image from "next/image";
 import TentangKamiSlider from "@/components/TentangKamiSlider";
+import StatCounter from "@/components/StatCounter";
 
 const stats = [
   {
@@ -49,7 +50,7 @@ const stats = [
   },
   {
     label: "Kerahasiaan Klien",
-    value: "Menjaga",
+    value: "100%",
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <rect
@@ -109,10 +110,18 @@ const values = [
     desc: "Kami berkomitmen penuh mengutamakan kepentingan dan tujuan klien.",
     icon: (
       <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="10" r="6" stroke="currentColor" strokeWidth="1.6" />
         <path
-          d="M8 12l2 2 6-6M3 12l4 3-1 5 6-3 6 3-1-5 4-3-4-3 1-5-6 3-6-3 1 5-4 3z"
+          d="M9 10l2 2 3.5-3.5"
           stroke="currentColor"
-          strokeWidth="1.3"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M8.5 15.5L7 21l5-2 5 2-1.5-5.5"
+          stroke="currentColor"
+          strokeWidth="1.6"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -149,61 +158,92 @@ const steps = [
     number: "01",
     title: "Analisis & Valuasi",
     desc: "Kami menganalisis bisnis Anda untuk menentukan nilai yang tepat.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M4 19V13M9 19V9M14 19V5M19 19v-8M4 19h16"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
   },
   {
     number: "02",
     title: "Pencarian Pembeli",
     desc: "Kami mengakses jaringan luas untuk menemukan pembeli yang serius dan sesuai.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="10.5" cy="10.5" r="6" stroke="currentColor" strokeWidth="1.6" />
+        <path
+          d="M20 20l-4.8-4.8"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      </svg>
+    ),
   },
   {
     number: "03",
     title: "Negosiasi & Deal",
     desc: "Kami memfasilitasi negosiasi agar tercapai kesepakatan terbaik bagi kedua pihak.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.6" />
+        <path
+          d="M8.5 12.5l2.2 2.2L16 9.5"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
   },
   {
     number: "04",
     title: "Pendampingan Closing",
     desc: "Kami dampingi hingga proses legal dan serah terima bisnis selesai dengan lancar.",
+    icon: (
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+        <path
+          d="M14 3v5h5M9 14l2 2 4-4"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
   },
 ];
 
 const team = [
   {
-    name: "Rendy Pratama",
-    role: "CEO & Business Broker",
-    linkedin: "#",
-    photo:
-      "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&q=80",
-  },
-  {
-    name: "Dewi Lestari",
-    role: "Business Broker",
-    linkedin: "#",
+    name: "Phrisella",
+    role: "CEO",
+    linkedin: "https://www.linkedin.com/in/phrisella-elstar-josel15",
+    bio: "Didasari dari keinginan untuk membantu pebisnis, Phrisella menyadari bahwa broker bisnis adalah cara untuk membantu pebisnis mempunyai bisnis dengan mudah namun tetap aman dan terpercaya. Pengetahuan dan pengalamannya dalam dunia bisnis broker menjadi bala bantuan bagi pebisnis untuk mencari bisnis yang sesuai.",
     photo:
       "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&q=80",
-  },
-  {
-    name: "Budi Santoso",
-    role: "Legal Advisor",
-    linkedin: "#",
-    photo:
-      "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=400&q=80",
-  },
-  {
-    name: "Fajar Nugroho",
-    role: "Financial Advisor",
-    linkedin: "#",
-    photo:
-      "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400&q=80",
   },
 ];
 
 export default function TentangKamiPage() {
   return (
     <>
-      {/* Hero Slider + Stats Bar = 100vh */}
-      <div className="flex flex-col h-screen">
-        <div className="flex-1 min-h-0">
+      {/* Hero Slider + Stats Bar */}
+      <div className="flex flex-col">
+        <div className="h-[600px] lg:h-[650px]">
           <TentangKamiSlider />
         </div>
 
@@ -222,9 +262,10 @@ export default function TentangKamiPage() {
                     {stat.icon}
                   </div>
                   <div>
-                    <p className="text-base lg:text-lg font-bold text-navy-900 leading-none mb-1">
-                      {stat.value}
-                    </p>
+                    <StatCounter
+                      value={stat.value}
+                      className="text-base lg:text-lg font-bold text-navy-900 leading-none mb-1"
+                    />
                     <p className="text-xs text-slate-500 leading-tight whitespace-nowrap">
                       {stat.label}
                     </p>
@@ -279,13 +320,13 @@ export default function TentangKamiPage() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch cursor-pointer">
             {values.map((value) => (
               <div
                 key={value.title}
-                className="text-center rounded-2xl border border-slate-200 bg-white p-8 hover:shadow-card transition-shadow"
+                className="group h-full flex flex-col text-center rounded-2xl border border-slate-200 bg-white p-8 hover:shadow-card hover:border-navy-900/20 transition-all"
               >
-                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-blue-50 text-brand flex items-center justify-center">
+                <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-white border-2 border-slate-200 text-navy-900 flex items-center justify-center transition-all duration-300 group-hover:bg-navy-900 group-hover:border-navy-900 group-hover:scale-110 group-hover:text-white">
                   {value.icon}
                 </div>
                 <h3 className="font-semibold text-navy-900 text-[16px] mb-2">
@@ -314,12 +355,14 @@ export default function TentangKamiPage() {
 
           <div className="relative grid sm:grid-cols-2 lg:grid-cols-4 gap-10 lg:gap-6">
             {/* connecting line for desktop */}
-            <div className="hidden lg:block absolute top-6 left-[12.5%] right-[12.5%] h-px bg-slate-200" />
+            <div
+              className="hidden lg:block absolute top-7 left-[12.5%] right-[12.5%] border-t-2 border-dashed border-slate-300"
+            />
 
             {steps.map((step) => (
-              <div key={step.number} className="relative text-center">
-                <div className="relative z-10 w-12 h-12 mx-auto mb-5 rounded-full bg-navy-900 text-white flex items-center justify-center font-bold text-sm">
-                  {step.number}
+              <div key={step.number} className="group relative text-center">
+                <div className="relative z-10 w-14 h-14 mx-auto mb-5 rounded-full bg-white border-2 border-slate-200 text-navy-900 flex items-center justify-center transition-all duration-300 group-hover:bg-navy-900 group-hover:border-navy-900 group-hover:scale-110 group-hover:text-white">
+                  {step.icon}
                 </div>
                 <h3 className="font-semibold text-navy-900 text-[16px] mb-2">
                   {step.title}
@@ -345,38 +388,53 @@ export default function TentangKamiPage() {
             </h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex justify-center">
             {team.map((member) => (
               <div
                 key={member.name}
-                className="rounded-2xl border border-slate-200 bg-white p-6 text-center hover:shadow-card transition-shadow"
+                className="group relative rounded-2xl border border-slate-200 overflow-hidden h-[420px] w-full max-w-[320px] hover:shadow-card transition-shadow"
               >
-                <div className="relative w-24 h-24 rounded-full overflow-hidden mx-auto mb-4 bg-slate-100">
+                {/* FRONT — foto full-card + nameplate, terlihat default */}
+                <div className="absolute inset-0">
                   <Image
                     src={member.photo}
                     alt={member.name}
                     fill
                     className="object-cover"
-                    sizes="96px"
+                    sizes="(min-width: 1024px) 25vw, 50vw"
                   />
+                  <div className="absolute inset-x-0 bottom-0 p-4">
+                    <div className="bg-white/90 backdrop-blur rounded-xl px-4 py-3 text-center">
+                      <h3 className="font-bold text-navy-900 text-[16px]">
+                        {member.name}
+                      </h3>
+                      <div className="h-px bg-slate-300 my-1.5 mx-auto w-16" />
+                      <p className="text-slate-500 italic text-[13px]">
+                        {member.role}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="font-semibold text-navy-900 text-[16px] mb-1">
-                  {member.name}
-                </h3>
-                <p className="text-brand text-xs font-semibold uppercase tracking-wide mb-3">
-                  {member.role}
-                </p>
-                <a
-                  href={member.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-brand hover:bg-brand hover:text-white transition-colors"
-                  aria-label={`LinkedIn ${member.name}`}
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.11 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8.75h4V23h-4V8.75zM8.5 8.75h3.84v1.96h.05c.53-1 1.83-2.06 3.77-2.06 4.03 0 4.77 2.65 4.77 6.1V23h-4v-6.5c0-1.55-.03-3.55-2.17-3.55-2.17 0-2.5 1.7-2.5 3.44V23h-4V8.75z" />
-                  </svg>
-                </a>
+
+                {/* BACK — bio + LinkedIn, muncul saat hover */}
+                <div className="absolute inset-0 bg-white p-5 flex flex-col opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p className="text-slate-500 text-[16px] leading-relaxed flex-1 overflow-y-auto">
+                    {member.bio}
+                  </p>
+                  <div className="flex justify-end pt-3">
+                    <a
+                      href={member.linkedin}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center justify-center w-9 h-9 rounded-full bg-brand text-white hover:bg-navy-900 transition-colors"
+                      aria-label={`LinkedIn ${member.name}`}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M4.98 3.5C4.98 4.88 3.87 6 2.5 6S0 4.88 0 3.5 1.11 1 2.5 1 4.98 2.12 4.98 3.5zM.5 8.75h4V23h-4V8.75zM8.5 8.75h3.84v1.96h.05c.53-1 1.83-2.06 3.77-2.06 4.03 0 4.77 2.65 4.77 6.1V23h-4v-6.5c0-1.55-.03-3.55-2.17-3.55-2.17 0-2.5 1.7-2.5 3.44V23h-4V8.75z" />
+                      </svg>
+                    </a>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
@@ -385,29 +443,65 @@ export default function TentangKamiPage() {
 
       {/* CTA */}
       <section className="pb-20 lg:pb-24">
-        <div className="max-w-container mx-auto px-6 lg:px-8">
-          <div className="bg-navy-900 rounded-3xl px-8 py-14 lg:py-16 text-center">
-            <h2 className="text-2xl lg:text-[32px] font-bold text-white mb-4">
-              Siap Memulai Perjalanan Bisnis Anda?
-            </h2>
-            <p className="text-slate-300 text-[15px] mb-8 max-w-lg mx-auto">
-              Konsultasikan kebutuhan bisnis Anda bersama tim kami secara
-              gratis dan tanpa komitmen.
-            </p>
+        <div className="max-w-[1080px] mx-auto px-6 lg:px-8">
+          <div className="relative overflow-hidden bg-navy-900 rounded-3xl px-6 lg:px-10 py-6 lg:py-7 flex flex-col lg:flex-row items-center gap-5 lg:gap-8">
+            {/* Icon with radial glow */}
+            <div className="relative shrink-0 w-16 h-16 rounded-full flex items-center justify-center">
+              <div
+                className="absolute inset-0 rounded-full"
+                style={{
+                  background:
+                    "radial-gradient(circle, rgba(59,130,246,0.55) 0%, rgba(59,130,246,0) 70%)",
+                }}
+              />
+              <div className="relative w-12 h-12 rounded-full bg-blue-600/40 flex items-center justify-center">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M11 13l2-2M8 12l-2.5 2.5a1.5 1.5 0 002.12 2.12L10 14M13 9l2.5-2.5a1.5 1.5 0 012.12 2.12L15 11M4 20l1.5-4.5L14 7l3 3-8.5 8.5L4 20z"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="text-white"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Text */}
+            <div className="flex-1 text-center lg:text-left">
+              <h2 className="text-lg lg:text-xl font-bold text-white mb-1">
+                Siap Memulai Perjalanan Bisnis Anda?
+              </h2>
+              <p className="text-slate-300 text-[13px] lg:text-[14px] leading-snug">
+                Konsultasikan kebutuhan bisnis Anda bersama tim kami
+                <br className="hidden lg:block" /> secara gratis dan tanpa komitmen.
+              </p>
+            </div>
+
+            {/* CTA button */}
             <a
               href="/#hubungi-kami"
-              className="inline-flex items-center gap-2 rounded-full bg-white text-navy-900 text-sm font-semibold px-7 py-3.5 hover:bg-blue-50 transition-colors"
+              className="group shrink-0 inline-flex items-center gap-0 rounded-full bg-white text-navy-900 text-sm font-semibold px-6 py-3 hover:bg-blue-50 transition-colors"
             >
               Konsultasi Gratis
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path
-                  d="M3 8H13M13 8L9 4M13 8L9 12"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <span className="inline-block max-w-0 group-hover:max-w-[28px] overflow-hidden transition-all duration-300 ease-out">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 16 16"
+                  fill="none"
+                  className="ml-2"
+                >
+                  <path
+                    d="M3 8H13M13 8L9 4M13 8L9 12"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
             </a>
           </div>
         </div>

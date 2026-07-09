@@ -23,7 +23,7 @@ const config: Config = {
         sans: ["var(--font-inter)", "Arial", "sans-serif"],
       },
       maxWidth: {
-        container: "1600px",
+        container: "1280px",
       },
       boxShadow: {
         card: "0 4px 24px rgba(15, 35, 82, 0.08)",
